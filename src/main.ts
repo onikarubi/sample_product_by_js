@@ -1,119 +1,64 @@
 import './styles/style.scss';
+import './user';
 
-interface HtmlElement {
-  targetName: string;
-  getElements(): HTMLCollectionOf<Element>;
-  elementsChangeEvent(elements: HTMLCollectionOf<Element>): void;
-}
+class ImageBox {
+  private elements: Array<Element> = [];
+  public value: string;
+  public elemName: string;
+  public pathElements: NodeListOf<Element>;
 
-// /* カラーパレット、svg要素の変更 */
+  constructor(name: string) {
+    this.elemName = this.checkElementName(name);
+    this.pathElements = document.querySelectorAll(`.${this.elemName} path`);
+    console.log(this.pathElements)
 
-abstract class InputElement {
-  protected targetElement: HTMLInputElement;
-  protected type: string;
 
-  constructor(public elemId: string) {
-    this.elemId = elemId
-    this.targetElement = document.getElementById(this.elemId) as HTMLInputElement;
-  }
+    for (const element of document.getElementsByClassName(this.elemName)) {
+      this.elements.push(element);
+    }
 
-  get getInputValue(): string { return this.targetElement.value; }
-  abstract inputChangeEvent(svg: HTMLElement): void;
-  abstract displayProperty<T, U>(type: T, elemId: U);
-}
-
-class InputColor extends InputElement {
-  private attributeName: string;
-  constructor(elemId: string) {
-    super(elemId);
-    this.type = 'color';
-    this.attributeName = 'fill';
-  }
-
-  public inputChangeEvent(svg: HTMLElement): void {
-    this.targetElement.addEventListener('input', () => {
-      svg.setAttribute(this.attributeName, this.targetElement.value)
+    Array.prototype.forEach.call(this.elements, (element: HTMLElement, index) => {
+      element.setAttribute('id', `${this.elemName}-${index + 1}`)
     });
   }
 
-  public displayProperty<T, U>(type: T, elemId: U) {
-    return {
-      inputType: type,
-      targetId: elemId
+  private checkElementName(elemName: string): string {
+    if (elemName === 'svg' || elemName === 'color-pallet') {
+      return elemName;
+    } else {
+      throw new TypeError(`${elemName} is not found type.`);
     }
   }
 
-  public get typeValue(): string {
-    if (this.type) {
-      return this.type;
-    } else {
-      throw new Error('値が空です。')
+  get getElements(): Array<Element> {
+    if (!(this.elements.length == 0)) {
+      return this.elements;
     }
+
+    return undefined;
   }
 
-  public get elemIdValue(): string {
-    if (this.elemId) {
-      return this.elemId;
-    } else {
-      throw new Error('値が空です。')
-    }
+  /*＊
+  もし、path要素にfill属性が付属している場合は、
+  path要素に付属しているfill属性を
+  svg要素に付属させる初期化処理を行う
+  **/
+  private initSvgFill(element: Element): void {
+    const currentId: string = element.getAttribute('id');
+    const targetElement = document.querySelector(`${currentId} path`)
+    const targetFill = targetElement.getAttribute('fill');
+    targetElement.removeAttribute('fill');
+    element.setAttribute('fill', targetFill);
+  }
+
+  public static factoryElements(typeName: string): Array<Element> {
+    const imageBox: ImageBox = new ImageBox(typeName);
+    return imageBox.getElements;
   }
 }
 
-const svgBox: HTMLCollectionOf<Element> = document.getElementsByClassName('svg-box');
-const svgElements: HTMLCollectionOf<Element> = document.getElementsByClassName('svg');
-const colorElements: HTMLCollectionOf<Element> = document.getElementsByClassName('color-pallet');
+/* カラーパレット、svg要素の変更 */
 
-const elementChangeEvent = (elements: HTMLCollectionOf<Element>, event: Function): void => {
-  for (const element of elements) {
-    event(element);
-  }
-}
-elementChangeEvent(svgElements, console.log)
-
-
-// let counter: number = 0;
-// console.log(getGenerateId(svgBox.length, 'color-pallet'))
-
-
-
-// const setAttributesId = (id: number): void => {
-//   svgElements[id].setAttribute('id', `svg-${id + 1}`);
-//   colorElements[id].setAttribute('id', `color-pallet-${id + 1}`);
-// }
-
-// const changeSvgColor = (id: number): void => {
-//   const svg: HTMLElement = document.getElementById(`svg-${id + 1}`);
-//   const inputElement: InputColor = new InputColor(`color-pallet-${id + 1}`);
-//   inputElement.inputChangeEvent(svg);
-// }
-
-// for (let i = 0; i < svgBox.length; i++) {
-//   let referencedId: number = i;
-//   setAttributesId(referencedId);
-//   changeSvgColor(referencedId);
-// }
-
-// const svgIdList: Array<string> = [];
-// const colorIdList: Array<string> = [];
-
-// for (let i = 0; i < svgElements.length; i++) {
-//   svgElements[i].setAttribute('id', `svg${i + 1}`);
-//   colorElements[i].setAttribute('id', `color-pallet-${i + 1}`);
-//   svgIdList.push(svgElements[i].getAttribute('id'))
-//   colorIdList.push(colorElements[i].getAttribute('id'))
-// }
-
-// const sampleInput = new InputColor('color-pallet-1')
-// const sampleInput2 = new InputColor('color-pallet-2')
-// const sampleInput3 = new InputColor('color-pallet-3')
-// const sampleSVG = document.getElementById('svg1')
-// const sampleSVG2 = document.getElementById('svg2')
-// const sampleSVG3 = document.getElementById('svg3')
-
-// sampleInput.inputChangeEvent(sampleSVG);
-// sampleInput2.inputChangeEvent(sampleSVG2);
-// sampleInput3.inputChangeEvent(sampleSVG3);
-
-
+const sampleInstance = new ImageBox('color-pallet');
+// console.log(sampleInstance.pathElements)
 
